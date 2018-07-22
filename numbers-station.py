@@ -3,16 +3,22 @@
 import argparse
 import contextlib
 import glob
+import io
 import random
 import sys
 import wave
+
+import ffmpeg
+
+
+STEREO_BITRATE = 64000
 
 
 def parse_command_line():
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output",
                         required=True,
-                        help="Output filename.")
+                        help="Output filename. Specify '-' for stdout.")
     parser.add_argument("--samples-glob",
                         required=True,
                         help="Glob pattern for selecting sample files.")
@@ -26,6 +32,9 @@ def parse_command_line():
                         default=4,
                         help="Number of samples to use. " +
                              "Defaults to %(default)s.")
+    parser.add_argument("--opus",
+                        action="store_true",
+                        help="Encode output with OPUS and mux to OGG.")
     return parser.parse_args()
 
 
@@ -64,6 +73,12 @@ def concatenate_wavs(output, *wavs, silence_duration=0):
                     out_wav.writeframes(silence)
 
 
+def get_wave_info(data):
+    with io.BytesIO(data) as stream:
+        with wave.open(stream, mode="rb") as wav:
+            return wav.getparams()
+
+
 @contextlib.contextmanager
 def file_or_stdout(filename):
     if filename == "-":
@@ -81,10 +96,33 @@ def main():
 
     chosen_samples = random.choices(sample_filenames, k=args.samples)
 
-    with file_or_stdout(args.output) as outfile:
-        concatenate_wavs(outfile,
+    with io.BytesIO() as outstream:
+        concatenate_wavs(outstream,
                          *chosen_samples,
                          silence_duration=args.silence)
+        result = outstream.getvalue()
+
+    if not args.opus:
+        with file_or_stdout(args.output) as outfile:
+            outfile.write(result)
+        return
+
+    bitrate = STEREO_BITRATE * (get_wave_info(result).nchannels // 2)
+    if bitrate < STEREO_BITRATE:
+        bitrate = STEREO_BITRATE
+
+    (
+        ffmpeg
+        .input("pipe:")
+        .output(args.output,
+                acodec="libopus",
+                audio_bitrate=bitrate,
+                vbr="on",
+                compression_level=10,
+                format="ogg")
+        .overwrite_output()
+        .run(input=result)
+    )
 
 
 if __name__ == "__main__":

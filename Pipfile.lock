@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "522b32a6e38f712d38cf513fa8e54272453abd4c2aba7e5da61b8a4d7b1fe7bd"
+            "sha256": "51654f95898475913de1d652472a8d1e03052d0d6eff3b7778fdda5bd88a790c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -15,7 +15,21 @@
             }
         ]
     },
-    "default": {},
+    "default": {
+        "ffmpeg-python": {
+            "hashes": [
+                "sha256:721db04120ad110619c17dd7a72db8d21a6738d721be1b3b4c72a7516e6b07f4"
+            ],
+            "index": "pypi",
+            "version": "==0.1.16"
+        },
+        "future": {
+            "hashes": [
+                "sha256:e39ced1ab767b5936646cedba8bcce582398233d6a627067d4c6a454c90cfedb"
+            ],
+            "version": "==0.16.0"
+        }
+    },
     "develop": {
         "astroid": {
             "hashes": [
