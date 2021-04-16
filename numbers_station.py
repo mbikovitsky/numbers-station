@@ -16,25 +16,27 @@ STEREO_BITRATE = 64000
 
 def parse_command_line():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-o", "--output",
-                        required=True,
-                        help="Output filename. Specify '-' for stdout.")
-    parser.add_argument("--samples-glob",
-                        required=True,
-                        help="Glob pattern for selecting sample files.")
-    parser.add_argument("--silence",
-                        type=float,
-                        default=0,
-                        help="Seconds of silence to add between samples. " +
-                             "Defaults to %(default)s.")
-    parser.add_argument("--samples",
-                        type=int,
-                        default=4,
-                        help="Number of samples to use. " +
-                             "Defaults to %(default)s.")
-    parser.add_argument("--opus",
-                        action="store_true",
-                        help="Encode output with OPUS and mux to OGG.")
+    parser.add_argument(
+        "-o", "--output", required=True, help="Output filename. Specify '-' for stdout."
+    )
+    parser.add_argument(
+        "--samples-glob", required=True, help="Glob pattern for selecting sample files."
+    )
+    parser.add_argument(
+        "--silence",
+        type=float,
+        default=0,
+        help="Seconds of silence to add between samples. Defaults to %(default)s.",
+    )
+    parser.add_argument(
+        "--samples",
+        type=int,
+        default=4,
+        help="Number of samples to use. Defaults to %(default)s.",
+    )
+    parser.add_argument(
+        "--opus", action="store_true", help="Encode output with OPUS and mux to OGG."
+    )
     return parser.parse_args()
 
 
@@ -55,10 +57,7 @@ def concatenate_wavs(output, *wavs, silence_duration=0):
             if wav.getparams()[:3] != (channels, sampwidth, framerate):
                 raise ValueError("Parameters mismatch in '{}'".format(wav_name))
 
-    silence = generate_silence(channels,
-                               sampwidth,
-                               framerate,
-                               silence_duration)
+    silence = generate_silence(channels, sampwidth, framerate, silence_duration)
 
     with wave.open(output, mode="wb") as out_wav:
         out_wav.setnchannels(channels)
@@ -97,9 +96,7 @@ def main():
     chosen_samples = random.choices(sample_filenames, k=args.samples)
 
     with io.BytesIO() as outstream:
-        concatenate_wavs(outstream,
-                         *chosen_samples,
-                         silence_duration=args.silence)
+        concatenate_wavs(outstream, *chosen_samples, silence_duration=args.silence)
         result = outstream.getvalue()
 
     if not args.opus:
@@ -114,12 +111,14 @@ def main():
     (
         ffmpeg
         .input("pipe:")
-        .output(args.output,
-                acodec="libopus",
-                audio_bitrate=bitrate,
-                vbr="on",
-                compression_level=10,
-                format="ogg")
+        .output(
+            args.output,
+            acodec="libopus",
+            audio_bitrate=bitrate,
+            vbr="on",
+            compression_level=10,
+            format="ogg",
+        )
         .overwrite_output()
         .run(input=result)
     )
