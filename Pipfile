@@ -9,7 +9,7 @@ ffmpeg-python = "*"
 [dev-packages]
 google-cloud-texttospeech = "*"
 pylint = "*"
-rope = "*"
+pycodestyle = "*"
 
 [requires]
 python_version = "3.7"

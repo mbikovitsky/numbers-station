@@ -24,11 +24,12 @@ def synthesize_audio(text, language_code, voice):
     input_text = texttospeech.types.SynthesisInput(text=text)
 
     voice = texttospeech.types.VoiceSelectionParams(
-        language_code=language_code,
-        name=voice)
+        language_code=language_code, name=voice
+    )
 
     audio_config = texttospeech.types.AudioConfig(
-        audio_encoding=texttospeech.enums.AudioEncoding.LINEAR16)
+        audio_encoding=texttospeech.enums.AudioEncoding.LINEAR16
+    )
 
     response = client.synthesize_speech(input_text, voice, audio_config)
 
